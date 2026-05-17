@@ -302,6 +302,27 @@ public class Player : ITargetable, IPlayer
         }
     }
 
+    public bool DisarmTrap(Chest chest, KeyItem lockpick)
+    {
+        if (chest == null || lockpick == null)
+            return false;
+
+        if (!chest.IsTrapped || chest.TrapDisarmed)
+            return false;
+
+        if (lockpick.KeyId != null)
+            return false;
+
+        if (Inventory == null)
+            return false;
+
+        chest.TrapDisarmed = true;
+
+        Inventory.RemoveItem(lockpick);
+
+        return true;
+    }
+
     // ============================================================
     // MONSTER LOOTING (new in Week 13)
     // ============================================================

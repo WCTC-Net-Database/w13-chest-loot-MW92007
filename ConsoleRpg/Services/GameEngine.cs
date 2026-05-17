@@ -347,29 +347,67 @@ public class GameEngine
                 return;
             }
 
-            // List each chest with a quick status summary
             for (int i = 0; i < _chests.Count; i++)
             {
                 var chest = _chests[i];
-                var status = chest.IsLocked ? "[LOCKED]" : chest.Items.Any() ? "[OPEN]" : "[EMPTY]";
+
+                var status = chest.IsLocked ? "[LOCKED]" :
+                             chest.Items.Any() ? "[OPEN]" : "[EMPTY]";
+
                 var trap = chest.IsTrapped && !chest.TrapDisarmed ? " [TRAPPED]" : "";
+
                 Console.WriteLine($"  {i + 1}. {chest.Description} {status}{trap}");
             }
+
             Console.WriteLine("  0. Back");
+            Console.WriteLine("  M. Most valuable unopened chest");
             Console.Write("\nWhich chest? ");
 
             var input = Console.ReadLine();
-            if (input == "0") return;
 
-            if (!int.TryParse(input, out int idx) || idx < 1 || idx > _chests.Count)
+            if (input == "0")
+                return;
+
+            if (input?.ToLower() == "m")
+            {
+                ShowMostValuableUnopenedChest();
+                Pause();
+                continue;
+            }
+
+            if (!int.TryParse(input, out int f) || f < 1 || f > _chests.Count)
             {
                 Console.WriteLine("Invalid selection.");
                 Pause();
                 continue;
             }
 
-            InteractWithChest(_chests[idx - 1]);
+            InteractWithChest(_chests[f - 1]);
         }
+    }
+
+    public void ShowMostValuableUnopenedChest()
+    {
+        var richestChest = _chests
+            .Where(c => c.IsLocked)
+            .Select(c => new
+            {
+                Chest = c,
+                TotalValue = c.Items.Sum(i => i.Value)
+            })
+            .OrderByDescending(c => c.TotalValue)
+            .FirstOrDefault();
+
+        if (richestChest == null)
+        {
+            Console.WriteLine("There are no locked chests.");
+            return;
+        }
+
+        Console.WriteLine(
+            $"Most valuable unopened chest: {richestChest.Chest.Description} " +
+            $"(Total value: {richestChest.TotalValue})"
+        );
     }
 
     private void InteractWithChest(Chest chest)
